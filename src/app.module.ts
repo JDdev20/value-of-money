@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { FinanceModule } from './finance/finance.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -17,9 +18,9 @@ import { FinanceModule } from './finance/finance.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
-
     HttpModule,
     FinanceModule,
+    ScheduleModule.forRoot(),
   ],
 })
 export class AppModule {}
