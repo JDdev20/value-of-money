@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { FinanceModule } from './finance/finance.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     HttpModule,
     FinanceModule,
+    SeedModule,
     ScheduleModule.forRoot(),
   ],
 })

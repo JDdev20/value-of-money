@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import * as cheerio from 'cheerio';
-import { DailyRate } from './entities/daily-rate.entity';
+import { CurrencyConversion, DailyRate } from './entities';
 
 @Injectable()
 export class FinanceService {
@@ -13,25 +13,57 @@ export class FinanceService {
   constructor(
     @InjectRepository(DailyRate)
     private readonly dailyRateRepository: Repository<DailyRate>,
+    @InjectRepository(CurrencyConversion)
+    private readonly currencyConversionRepository: Repository<CurrencyConversion>,
 
     private readonly httpService: HttpService,
   ) {}
 
-  async saveDolarValue(value: string): Promise<string> {
-    if (!this.dailyRateRepository) {
-      this.logger.error('Repository not available.');
+  async saveDolarValue(
+    value: string,
+    currencyConversionId: number,
+  ): Promise<string> {
+    const currencyConversion = await this.currencyConversionRepository.findOne({
+      where: { id: currencyConversionId },
+    });
+    if (!currencyConversion) {
+      this.logger.error('CurrencyConversion not found.');
       return value;
     }
 
-    const dailyRate = new DailyRate();
-    dailyRate.amount = value;
-    dailyRate.date = new Date().toISOString().split('T')[0];
+    const todayDate = new Date().toISOString().split('T')[0];
 
     try {
+      // Check if a DailyRate record exists for today and the given CurrencyConversion
+      let dailyRate = await this.dailyRateRepository.findOne({
+        where: {
+          date: todayDate,
+          currency_conversion: { id: currencyConversion.id },
+        },
+      });
+
+      if (dailyRate) {
+        // Update existing record
+        dailyRate.amount = value;
+      } else {
+        // Create new record
+        dailyRate = new DailyRate();
+        dailyRate.amount = value;
+        dailyRate.date = todayDate;
+        dailyRate.currency_conversion = currencyConversion;
+      }
+
       await this.dailyRateRepository.save(dailyRate);
       this.logger.log('Dollar value saved successfully.');
     } catch (error) {
-      this.logger.error('Failed to save dollar value.', error.stack);
+      if (error.code === '23505') {
+        // Unique constraint violation for PostgreSQL
+        this.logger.error(
+          'A record with the same date and CurrencyConversion already exists.',
+        );
+      } else {
+        this.logger.error('Failed to save dollar value.', error.stack);
+      }
     }
 
     return value;

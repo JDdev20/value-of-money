@@ -5,15 +5,17 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { CurrencyConversion } from './currency-conversion.entity';
 
 @Entity('daily_rate')
+@Unique(['date', 'currency_conversion'])
 export class DailyRate {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => CurrencyConversion)
+  @ManyToOne(() => CurrencyConversion, { eager: true })
   currency_conversion: CurrencyConversion;
 
   @Column({ type: 'varchar', length: 25 })
