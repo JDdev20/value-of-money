@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import * as https from 'https';
 import * as cheerio from 'cheerio';
 
 @Injectable()
@@ -8,12 +9,19 @@ export class FinanceService {
   private readonly logger = new Logger(FinanceService.name);
 
   private readonly BCV_URL = process.env.BCV_URL;
+  private readonly NODE_ENV = process.env.NODE_ENV || 'development';
 
   constructor(private readonly httpService: HttpService) {}
 
   async fetchDolarValue(): Promise<any> {
     try {
-      const observable = this.httpService.get(this.BCV_URL);
+      const agent = new https.Agent({
+        rejectUnauthorized: this.NODE_ENV !== 'development', // Disable SSL verification in development
+      });
+
+      const observable = this.httpService.get(this.BCV_URL, {
+        httpsAgent: agent,
+      });
       const response = await lastValueFrom(observable);
       const html = response.data;
       const $ = cheerio.load(html);
