@@ -17,7 +17,7 @@ interface SeedData {
 export const initialData: SeedData = {
   currencies: [
     { name: 'bolivares', symbol: 'BS' },
-    { name: 'dolares', symbol: 'EUR' },
+    { name: 'dolares', symbol: 'USD' },
   ],
   currencyConversions: [
     {
