@@ -6,14 +6,14 @@ export class FinanceController {
   constructor(private financeService: FinanceService) {}
 
   // Find the dollar value for today
-  @Get('get_dolar')
+  @Get('get_dollar')
   async findDolarValueToday(): Promise<string | null> {
     const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
     return this.financeService.findDolarValue(today);
   }
 
   // Find the dollar value for a specific date
-  @Get('get_dolar/:date')
+  @Get('get_dollar/:date')
   async findDolarValue(@Param('date') date: string): Promise<string | null> {
     if (!this.isValidDate(date)) {
       throw new BadRequestException(
