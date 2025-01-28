@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
+import * as https from 'https';
 import * as cheerio from 'cheerio';
 import { CurrencyConversion, DailyRate } from './entities';
 
 @Injectable()
 export class FinanceService {
   private readonly logger = new Logger(FinanceService.name);
+  private readonly NODE_ENV = process.env.NODE_ENV || 'development';
 
   constructor(
     @InjectRepository(DailyRate)
@@ -71,8 +73,19 @@ export class FinanceService {
 
   async fetchDolarValue(): Promise<string> {
     const url = 'https://www.bcv.org.ve/';
+
+    const agent = new https.Agent({
+      rejectUnauthorized: this.NODE_ENV !== 'development', // Disable SSL verification in development
+    });
+
+ 
+
     try {
-      const observable = this.httpService.get(url);
+
+      const observable = this.httpService.get(url, {
+        httpsAgent: agent,
+      });
+
       const response = await lastValueFrom(observable);
       const html = response.data;
       const $ = cheerio.load(html);
