@@ -78,10 +78,7 @@ export class FinanceService {
       rejectUnauthorized: this.NODE_ENV !== 'development', // Disable SSL verification in development
     });
 
- 
-
     try {
-
       const observable = this.httpService.get(url, {
         httpsAgent: agent,
       });
